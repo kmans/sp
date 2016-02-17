@@ -6,7 +6,7 @@ from flask_restful import Resource, Api, marshal_with, fields, reqparse
 from flask_sqlalchemy import SQLAlchemy
 
 from hotfuzz import token_set_ratio
-from art import tvdbSearch
+from helpers import tvdbSearch, profanityFilter
 from forms import QueryForm
 
 app = Flask(__name__)
@@ -89,17 +89,6 @@ def commitData(filename):
         # Attempt to commit all the records
         db.session.commit()
 
-    # session.close()
-
-
-def fixData(data):
-    for item in data:
-        if item['_sa_instance_state']:
-            del item['_sa_instance_state']
-        elif item['_labels']:
-            del item['_labels']
-    return data
-
 
 def queryData(query):
     # session = Session()
@@ -119,31 +108,24 @@ def queryData(query):
             if quote['_sa_instance_state']:
                 del quote['_sa_instance_state']
             quote['arturl'], quote['episodename'], quote['overview'] = tvdbSearch(quote)
+        results = profanityFilter(results)
         return results
     else:
         return []
 
+
 #######################################
 # Flask Template Render for /         #
 #######################################
-
+"""
 @app.route('/', methods=['POST'])
 def index(query=None):
 
     query = QueryForm()
 
+    return query
 
-    team1id = tform1.team.data
-    team2id = tform2.team.data
-
-    if team1id is not None:
-        session['team1'] = int(team1id)
-
-    if team2id is not None:
-        session['team2'] = int(team2id)
-
-    return render_template('index.html', teams=teams, teamnames=teamnames)
-
+"""
 
 #######################################
 # RESTFUL API                         #
