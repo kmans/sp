@@ -1,12 +1,13 @@
 import csv
 import os
-from hotfuzz import token_set_ratio
 
 from flask import Flask, jsonify, abort, request
 from flask_restful import Resource, Api, marshal_with, fields, reqparse
 from flask_sqlalchemy import SQLAlchemy
 
-from art import artSearch
+from hotfuzz import token_set_ratio
+from art import tvdbSearch
+from forms import QueryForm
 
 app = Flask(__name__)
 
@@ -115,10 +116,33 @@ def queryData(query):
         results = map(lambda q: q.__dict__, v[0:5])
 
         for quote in results:
-            quote['art'] = artSearch(quote)
+            if quote['_sa_instance_state']:
+                del quote['_sa_instance_state']
+            quote['arturl'], quote['episodename'], quote['overview'] = tvdbSearch(quote)
         return results
     else:
         return []
+
+#######################################
+# Flask Template Render for /         #
+#######################################
+
+@app.route('/', methods=['POST'])
+def index(query=None):
+
+    query = QueryForm()
+
+
+    team1id = tform1.team.data
+    team2id = tform2.team.data
+
+    if team1id is not None:
+        session['team1'] = int(team1id)
+
+    if team2id is not None:
+        session['team2'] = int(team2id)
+
+    return render_template('index.html', teams=teams, teamnames=teamnames)
 
 
 #######################################
@@ -132,7 +156,10 @@ resource_fields = {
     'episode': fields.Integer,
     'character': fields.String,
     'line': fields.String,
-    'art': fields.Url,
+    'arturl': fields.String,
+    'episodename': fields.String,
+    'overview': fields.String,
+
 }
 
 

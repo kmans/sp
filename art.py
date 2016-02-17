@@ -1,20 +1,21 @@
 import xml.etree.ElementTree as et
 import urllib2
 
-
 # url for south park xml data api
 url = "http://thetvdb.com"
 apiurl = "api/477ED6F3EE1F4932/series/75897/default"
 
 
-def artSearch(quote):
+def tvdbSearch(quote):
     xmlfile = "{}/{}/{}/{}".format(url, apiurl, quote['season'], quote['episode'])
+    print "XMLFILE", xmlfile
     request = urllib2.Request(xmlfile, headers={"Accept": "application/xml"})
-    print xmlfile
     u = urllib2.urlopen(request)
     tree = et.parse(u)
     root = tree.getroot()
     # art = xmldoc.getElementsByTagName('filename')
-    art = root.find('filename').text
-    artfile = "{}/banners/{}".format(url, art)
-    return artfile
+    art = "".join([x.text for x in root.iter("filename")])
+    episodename = "".join([x.text for x in root.iter("EpisodeName")])
+    overview = "".join([x.text for x in root.iter("Overview")])
+    artfile = u"{}/banners/{}".format(url, art)
+    return artfile, episodename, overview
